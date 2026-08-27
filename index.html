@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Dashboard QGEST</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#10151C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QGEST">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-base: #10151C;
+    --bg-surface: #1A212B;
+    --bg-surface-2: #232B37;
+    --hairline: rgba(255,255,255,0.08);
+    --text-primary: #EDEFF2;
+    --text-muted: #8B96A5;
+    --text-faint: #5C6675;
+
+    --c-commodity: #F0A64B;
+    --c-switch: #45C1C7;
+    --c-nds: #9B8CF2;
+    --c-green: #7BC96F;
+    --c-danger: #E2685A;
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    overscroll-behavior-y: contain;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--c-switch); outline-offset: 2px; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 22px 20px 6px;
+  }
+  .topbar h1 {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em;
+  }
+  .topbar .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    display: block; margin-bottom: 2px;
+  }
+  .icon-btn {
+    background: none; border: none; color: var(--text-muted);
+    padding: 8px; cursor: pointer; border-radius: 10px; line-height: 0;
+  }
+  .icon-btn:active { background: var(--bg-surface); }
+
+  /* ---------- network summary strip ---------- */
+  .summary {
+    margin: 10px 20px 4px;
+    background: var(--bg-surface);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  .summary .stat { display: flex; flex-direction: column; gap: 3px; }
+  .summary .stat .label {
+    font-size: 10.5px; color: var(--text-faint); text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .summary .stat .value {
+    font-family: var(--font-mono); font-size: 19px; font-weight: 600;
+  }
+
+  /* ---------- gallery list ---------- */
+  .list { padding: 14px 20px 32px; display: flex; flex-direction: column; gap: 12px; }
+
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    padding: 16px 16px 16px 14px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .card:active { transform: scale(0.98); background: var(--bg-surface-2); }
+
+  .gauge-wrap { position: relative; width: 62px; height: 62px; flex: none; }
+  .gauge-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .gauge-track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 7; }
+  .gauge-fill { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dasharray 0.6s ease; }
+  .gauge-label {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 12.5px; font-weight: 600;
+  }
+
+  .card-body { flex: 1; min-width: 0; }
+  .card-body .name {
+    font-family: var(--font-display); font-size: 16.5px; font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+  .chip {
+    font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .chip .dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .chip b { color: var(--text-primary); font-weight: 600; }
+
+  .card-chevron { color: var(--text-faint); flex: none; }
+
+  .card.card-error { border-color: rgba(226,104,90,0.35); }
+  .card-error .name { color: var(--c-danger); }
+  .card-error .msg { font-size: 12px; color: var(--text-muted); }
+
+  /* ---------- detail view ---------- */
+  .detail {
+    position: fixed; inset: 0; background: var(--bg-base);
+    transform: translateY(100%); transition: transform 0.32s cubic-bezier(.32,.72,0,1);
+    overflow-y: auto; z-index: 20;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .detail.open { transform: translateY(0); }
+
+  .detail-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 18px 16px 8px;
+    position: sticky; top: 0; background: var(--bg-base); z-index: 2;
+  }
+  .detail-header h2 {
+    font-family: var(--font-display); font-size: 19px; font-weight: 600; margin: 0;
+  }
+
+  .detail-hero {
+    display: flex; align-items: center; gap: 18px;
+    padding: 8px 20px 20px;
+  }
+  .detail-hero .gauge-wrap { width: 96px; height: 96px; }
+  .detail-hero .gauge-label { font-size: 19px; }
+  .detail-hero .hero-text .label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+  .detail-hero .hero-text .value { font-family: var(--font-mono); font-size: 24px; font-weight: 600; margin-top: 2px; }
+
+  .section { padding: 4px 20px 22px; }
+  .section-title {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-faint);
+    display: flex; align-items: center; gap: 8px;
+    margin: 0 0 10px;
+  }
+  .section-title .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  .stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .stat-box {
+    background: var(--bg-surface); border: 1px solid var(--hairline);
+    border-radius: 14px; padding: 12px 14px;
+  }
+  .stat-box .label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .stat-box .value { font-family: var(--font-mono); font-size: 18px; font-weight: 600; }
+  .stat-box.wide { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; }
+
+  /* ---------- venditori (espandibile) ---------- */
+  .seller-row {
+    background: var(--bg-surface); border: 1px solid var(--hairline);
+    border-radius: 14px; margin-bottom: 8px; overflow: hidden;
+  }
+  .seller-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 14px; cursor: pointer;
+  }
+  .seller-head .seller-name { font-family: var(--font-display); font-size: 14.5px; font-weight: 600; }
+  .seller-head .seller-total { font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+  .seller-head .chev { color: var(--text-faint); transition: transform 0.2s ease; }
+  .seller-row.expanded .chev { transform: rotate(90deg); }
+  .seller-detail {
+    max-height: 0; overflow: hidden; transition: max-height 0.25s ease;
+  }
+  .seller-row.expanded .seller-detail { max-height: 200px; }
+  .seller-detail-inner {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    padding: 0 14px 14px;
+  }
+  .seller-stat { background: var(--bg-surface-2); border-radius: 10px; padding: 8px 10px; }
+  .seller-stat .label { font-size: 10.5px; color: var(--text-faint); margin-bottom: 2px; }
+  .seller-stat .value { font-family: var(--font-mono); font-size: 14.5px; font-weight: 600; }
+
+  /* ---------- states: loading / empty / error ---------- */
+  .state-screen {
+    min-height: 70vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 40px 30px; gap: 10px;
+  }
+  .state-screen .headline { font-family: var(--font-display); font-size: 17px; font-weight: 600; }
+  .state-screen .sub { font-size: 13.5px; color: var(--text-muted); max-width: 280px; line-height: 1.5; }
+  .spinner {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2.5px solid var(--bg-surface-2); border-top-color: var(--c-switch);
+    animation: spin 0.8s linear infinite; margin-bottom: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .btn {
+    margin-top: 6px; background: var(--bg-surface); border: 1px solid var(--hairline);
+    color: var(--text-primary); font-size: 13.5px; font-weight: 500;
+    padding: 10px 18px; border-radius: 12px; cursor: pointer;
+  }
+  .btn:active { background: var(--bg-surface-2); }
+  .btn.primary { background: var(--c-switch); border-color: var(--c-switch); color: #0A1416; font-weight: 600; }
+
+  .updated-note {
+    text-align: center; font-family: var(--font-mono); font-size: 10.5px;
+    color: var(--text-faint); padding: 2px 0 10px;
+  }
+
+  /* ---------- settings ---------- */
+  .settings {
+    position: fixed; inset: 0; background: var(--bg-base); z-index: 30;
+    display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top) 22px env(safe-area-inset-bottom);
+  }
+  .settings h2 { font-family: var(--font-display); font-size: 20px; margin: 30px 0 4px; }
+  .settings p.hint { color: var(--text-muted); font-size: 13px; line-height: 1.5; margin: 0 0 24px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .field input {
+    width: 100%; background: var(--bg-surface); border: 1px solid var(--hairline);
+    color: var(--text-primary); font-family: var(--font-mono); font-size: 14px;
+    padding: 12px 14px; border-radius: 12px;
+  }
+  .field input:focus { border-color: var(--c-switch); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div class="topbar">
+    <div>
+      <span class="eyebrow" id="date-eyebrow">Dashboard</span>
+      <h1>Rete gallerie</h1>
+    </div>
+    <button class="icon-btn" id="settings-btn" aria-label="Impostazioni">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.6"/><path d="M19.4 13a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V19a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H4a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0A1.65 1.65 0 0011 4.09V4a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0c.24.62.82 1.03 1.49 1.02H20a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.6"/></svg>
+    </button>
+  </div>
+
+  <div id="summary" class="summary hidden"></div>
+  <div class="updated-note" id="updated-note"></div>
+
+  <div id="list" class="list"></div>
+
+  <div id="state-screen" class="state-screen hidden"></div>
+</div>
+
+<div id="detail" class="detail" aria-hidden="true"></div>
+
+<div id="settings" class="settings hidden">
+  <h2>Connetti la dashboard</h2>
+  <p class="hint">Incolla qui l'URL della Web App di Apps Script e il token che hai impostato in <code>CONFIG.token</code>.</p>
+  <div class="field">
+    <label for="input-url">URL Web App</label>
+    <input id="input-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" autocapitalize="off" autocorrect="off" spellcheck="false">
+  </div>
+  <div class="field">
+    <label for="input-token">Token</label>
+    <input id="input-token" type="text" placeholder="il-tuo-token" autocapitalize="off" autocorrect="off" spellcheck="false">
+  </div>
+  <button class="btn primary" id="save-settings">Salva e connetti</button>
+  <button class="btn" id="cancel-settings">Annulla</button>
+</div>
+
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
