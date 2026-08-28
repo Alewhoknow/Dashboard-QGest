@@ -3,7 +3,7 @@
 // Le chiamate ai dati (script.google.com) vanno SEMPRE in rete, mai in cache,
 // altrimenti vedresti numeri vecchi.
 
-const CACHE_NAME = 'qgest-shell-v1';
+const CACHE_NAME = 'qgest-shell-v2';
 const SHELL_FILES = [
   './',
   './index.html',
