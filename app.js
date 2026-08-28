@@ -116,7 +116,7 @@ async function fetchData() {
     render(data);
   } catch (err) {
     if (!lastData) {
-      showState('error', 'Connessione non riuscita', 'Controlla la connessione internet o l\'URL della Web App nelle impostazioni.', true);
+      showState('error', 'Connessione non riuscita', 'Dettaglio tecnico: ' + err.message + '. Controlla la connessione internet o l\'URL della Web App nelle impostazioni.', true);
     }
     // se abbiamo già dei dati da mostrare, un errore di rete temporaneo non cancella la schermata
   }
